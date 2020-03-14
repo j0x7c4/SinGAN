@@ -8,6 +8,26 @@ import math
 import matplotlib.pyplot as plt
 from SinGAN.imresize import imresize
 
+import logging
+
+# create logger
+logger = logging.getLogger("training_logger")
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.INFO)
+
+# create formatter
+formatter = logging.Formatter("%(asctime)s;%(levelname)s;%(message)s")
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
+
+
 def train(opt,Gs,Zs,reals,NoiseAmp):
     real_ = functions.read_image(opt)
     in_s = 0
@@ -197,7 +217,7 @@ def train_single_scale(netD,netG,reals,Gs,Zs,in_s,NoiseAmp,opt,centers=None):
         z_opt2plot.append(rec_loss)
 
         if epoch % 25 == 0 or epoch == (opt.niter-1):
-            print('scale %d:[%d/%d]' % (len(Gs), epoch, opt.niter))
+            logger.info('scale %d:[%d/%d]' % (len(Gs), epoch, opt.niter))
 
         if epoch % 500 == 0 or epoch == (opt.niter-1):
             plt.imsave('%s/fake_sample.png' %  (opt.outf), functions.convert_image_np(fake.detach()), vmin=0, vmax=1)
@@ -310,13 +330,13 @@ def init_models(opt):
     netG.apply(models.weights_init)
     if opt.netG != '':
         netG.load_state_dict(torch.load(opt.netG))
-    print(netG)
+    logger.info(netG)
 
     #discriminator initialization:
     netD = models.WDiscriminator(opt).to(opt.device)
     netD.apply(models.weights_init)
     if opt.netD != '':
         netD.load_state_dict(torch.load(opt.netD))
-    print(netD)
+    logger.info(netD)
 
     return netD, netG
